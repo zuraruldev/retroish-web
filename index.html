@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arul's Space - Retro OS</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=MS+DOS&display=swap" rel="stylesheet">
+</head>
+<body class="crt-filter">
+  <div class="scanlines"></div>
+
+  <!-- Desktop Icons -->
+  <main class="desktop" id="desktop">
+    <div class="icon" data-window="win-about" tabindex="0">
+      <div class="icon-img">📁</div>
+      <span>About Me</span>
+    </div>
+    <div class="icon" data-window="win-projects" tabindex="0">
+      <div class="icon-img">💾</div>
+      <span>Projects</span>
+    </div>
+    <div class="icon" data-window="win-terminal" tabindex="0">
+      <div class="icon-img">📟</div>
+      <span>Terminal</span>
+    </div>
+    <div class="icon" data-window="win-guestbook" tabindex="0">
+      <div class="icon-img">📝</div>
+      <span>Guestbook</span>
+    </div>
+  </main>
+
+  <!-- Windows -->
+  <!-- About Window -->
+  <div class="window active" id="win-about" style="top: 70px; left: 80px; width: 440px;">
+    <div class="title-bar">
+      <div class="title-bar-text">About_Arul.txt</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" class="btn-min">_</button>
+        <button aria-label="Close" class="btn-close">X</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <h2>Welcome to arul.cc.cd!</h2>
+      <p class="tagline">>> Booting personal station v1.0...</p>
+      <hr>
+      <p>Hey there! I am <strong>Arul</strong>. Welcome to my retro web space.</p>
+      <div class="status-box">
+        <p><strong>Status:</strong> Online</p>
+        <p><strong>Domain:</strong> arul.cc.cd</p>
+        <p><strong>System:</strong> RetroOS 98</p>
+      </div>
+      <p>Feel free to look around, launch the terminal, or sign the guestbook!</p>
+    </div>
+  </div>
+
+  <!-- Projects Window -->
+  <div class="window hidden" id="win-projects" style="top: 110px; left: 240px; width: 480px;">
+    <div class="title-bar">
+      <div class="title-bar-text">C:\PROJECTS\*.*</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" class="btn-min">_</button>
+        <button aria-label="Close" class="btn-close">X</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <div class="project-card">
+        <h3>1. Personal Website</h3>
+        <p>A retro 90s aesthetic desktop website hosted on arul.cc.cd.</p>
+        <span class="badge">HTML/CSS/JS</span>
+      </div>
+      <div class="project-card">
+        <h3>2. Secret Project X</h3>
+        <p>Currently in development. Stay tuned for updates.</p>
+        <span class="badge">WIP</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminal Window -->
+  <div class="window hidden" id="win-terminal" style="top: 140px; left: 160px; width: 460px;">
+    <div class="title-bar">
+      <div class="title-bar-text">MS-DOS Prompt</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" class="btn-min">_</button>
+        <button aria-label="Close" class="btn-close">X</button>
+      </div>
+    </div>
+    <div class="window-body terminal-body">
+      <div id="term-output">
+        <div>Arul RetroOS [Version 1.0.4]</div>
+        <div>(C) Copyright 2026 Arul. All rights reserved.</div>
+        <br>
+        <div>Type <code>help</code> for available commands.</div>
+      </div>
+      <div class="term-input-row">
+        <span>C:\&gt;</span>
+        <input type="text" id="term-input" autocomplete="off" spellcheck="false" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Guestbook Window -->
+  <div class="window hidden" id="win-guestbook" style="top: 120px; left: 200px; width: 420px;">
+    <div class="title-bar">
+      <div class="title-bar-text">Guestbook.exe</div>
+      <div class="title-bar-controls">
+        <button aria-label="Minimize" class="btn-min">_</button>
+        <button aria-label="Close" class="btn-close">X</button>
+      </div>
+    </div>
+    <div class="window-body">
+      <form id="guestbook-form">
+        <div class="field">
+          <label for="gb-name">Your Name:</label>
+          <input type="text" id="gb-name" required placeholder="Guest" />
+        </div>
+        <div class="field">
+          <label for="gb-msg">Message:</label>
+          <textarea id="gb-msg" rows="3" required placeholder="Leave a greeting..."></textarea>
+        </div>
+        <button type="submit" class="retro-btn">Sign Guestbook</button>
+      </form>
+      <div id="gb-entries">
+        <div class="gb-entry">
+          <strong>System:</strong> Welcome visitors from arul.cc.cd!
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <footer class="taskbar">
+    <button class="start-btn" id="start-btn">
+      <span class="start-icon">🪟</span>
+      <strong>Start</strong>
+    </button>
+    <div class="taskbar-tasks" id="taskbar-tasks"></div>
+    <div class="tray">
+      <button id="toggle-crt" title="Toggle CRT scanline effect">CRT: ON</button>
+      <span id="clock">00:00:00</span>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
