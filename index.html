@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Arul's Space - Retro OS</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&family=MS+DOS&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
 </head>
 <body class="crt-filter">
   <div class="scanlines"></div>
@@ -32,49 +32,36 @@
     </div>
     <div class="icon" data-window="win-tetris" tabindex="0">
       <div class="icon-img">🕹️</div>
-      <span>Tetris.exe</span>
+      <span>Tetris</span>
     </div>
   </main>
 
-  <!-- Kirby Animated Mascot -->
+  <!-- Kirby Mascot (Only shown when tour starts) -->
   <div id="kirby-walker" class="kirby-container hidden">
-    <div class="kirby-speech" id="kirby-speech">Welcome to arul.cc.cd! ⭐</div>
-    <svg class="kirby-svg" viewBox="0 0 100 100" width="70" height="70">
-      <!-- Body -->
+    <svg class="kirby-svg" viewBox="0 0 100 100" width="56" height="56">
       <circle cx="50" cy="54" r="32" fill="#ff9ec7" stroke="#e0548d" stroke-width="3" />
-      <!-- Cheeks -->
       <ellipse cx="32" cy="56" rx="6" ry="3" fill="#ff5a92" />
       <ellipse cx="68" cy="56" rx="6" ry="3" fill="#ff5a92" />
-      <!-- Eyes -->
       <ellipse cx="40" cy="46" rx="4" ry="9" fill="#1b2a75" />
       <ellipse cx="60" cy="46" rx="4" ry="9" fill="#1b2a75" />
       <ellipse cx="40" cy="42" rx="2" ry="5" fill="#ffffff" />
       <ellipse cx="60" cy="42" rx="2" ry="5" fill="#ffffff" />
       <ellipse cx="40" cy="51" rx="2" ry="2.5" fill="#388be6" />
       <ellipse cx="60" cy="51" rx="2" ry="2.5" fill="#388be6" />
-      <!-- Mouth -->
-      <path d="M 45 58 Q 50 64 55 58" stroke="#771337" stroke-width="2.5" fill="#c02652" stroke-linecap="round" />
-      <!-- Arms -->
+      <path d="M 45 58 Q 50 63 55 58" stroke="#771337" stroke-width="2.5" fill="#c02652" stroke-linecap="round" />
       <ellipse class="kirby-arm-left" cx="22" cy="52" rx="7" ry="11" fill="#ff9ec7" stroke="#e0548d" stroke-width="2.5" />
       <ellipse class="kirby-arm-right" cx="78" cy="50" rx="7" ry="11" fill="#ff9ec7" stroke="#e0548d" stroke-width="2.5" />
-      <!-- Feet -->
       <ellipse class="kirby-foot-left" cx="34" cy="85" rx="14" ry="8" fill="#d81b43" stroke="#990f2b" stroke-width="2.5" />
       <ellipse class="kirby-foot-right" cx="66" cy="85" rx="14" ry="8" fill="#d81b43" stroke="#990f2b" stroke-width="2.5" />
     </svg>
   </div>
 
-  <!-- Tour Toast Notification -->
-  <div id="tour-toast" class="tour-toast hidden">
-    <span class="tour-icon">🚀</span>
-    <span id="tour-toast-text">Tour starting...</span>
-  </div>
-
   <!-- Windows -->
 
-  <!-- Entrance Boot Dialog (Only shown on entrance) -->
-  <div class="window active entrance-dialog" id="win-entrance" style="top: 50%; left: 50%; transform: translate(-50%, -50%); width: 440px;">
+  <!-- Entrance Boot Dialog (Only shown on initial visit) -->
+  <div class="window active entrance-dialog" id="win-entrance">
     <div class="title-bar">
-      <div class="title-bar-text">SYSTEM BOOT - arul.cc.cd</div>
+      <div class="title-bar-text">Welcome to Arul Station</div>
       <div class="title-bar-controls">
         <button aria-label="Close" class="btn-close" id="btn-entrance-close">X</button>
       </div>
@@ -83,30 +70,29 @@
       <div class="boot-header">
         <div class="boot-avatar">💻</div>
         <div>
-          <h2 style="margin: 0; font-size: 17px;">Arul Retro Station</h2>
-          <p class="tagline" style="margin: 4px 0 0 0;">OS Version 98 [Release 1.0]</p>
+          <h2>RetroOS 98</h2>
+          <p class="tagline">Personal Workstation v1.0</p>
         </div>
       </div>
       <hr>
       <div class="boot-status-box">
-        <p>✔ Hostname: <code>arul.cc.cd</code></p>
-        <p>✔ Audio Engine: <code>Sound Blaster 16 (Ready)</code></p>
-        <p>✔ Default Theme: <code>Zelda BGM (zelda.mp3)</code></p>
-        <p>✔ Features: <code>Tour Guide, Retro Terminal, Hard Tetris</code></p>
+        <p>Host: arul.cc.cd</p>
+        <p>Sound: Sound Blaster 16 (Ready)</p>
+        <p>Theme: Zelda Theme</p>
       </div>
       <p style="font-size: 13px; line-height: 1.4; margin-bottom: 14px;">
-        Click below to boot into the system and start the background audio.
+        Click below to enter the desktop and enable background audio.
       </p>
       <div style="text-align: center;">
         <button id="btn-enter-system" class="retro-btn btn-boot">
-          ▶ ENTER SYSTEM & PLAY SOUND
+          Enter Desktop
         </button>
       </div>
     </div>
   </div>
 
-  <!-- About Window (Hidden by default, opened via tour or desktop icon) -->
-  <div class="window hidden" id="win-about" style="top: 70px; left: 80px; width: 440px;">
+  <!-- About Window -->
+  <div class="window hidden" id="win-about" style="top: 50px; left: 60px; width: 400px;">
     <div class="title-bar">
       <div class="title-bar-text">About_Arul.txt</div>
       <div class="title-bar-controls">
@@ -115,8 +101,8 @@
       </div>
     </div>
     <div class="window-body">
-      <h2>Welcome to arul.cc.cd!</h2>
-      <p class="tagline">&gt;&gt; Booting personal station v1.0...</p>
+      <h2>Welcome to arul.cc.cd</h2>
+      <p class="tagline">&gt;&gt; Personal workstation</p>
       <hr>
       <p>Hey there! I am <strong>Arul</strong>. Welcome to my retro web space.</p>
       <div class="status-box">
@@ -124,12 +110,12 @@
         <p><strong>Domain:</strong> arul.cc.cd</p>
         <p><strong>System:</strong> RetroOS 98</p>
       </div>
-      <p>Feel free to look around, launch the terminal, play Tetris, or sign the guestbook!</p>
+      <p>Feel free to look around, launch the terminal, play Tetris, or sign the guestbook.</p>
     </div>
   </div>
 
   <!-- Projects Window -->
-  <div class="window hidden" id="win-projects" style="top: 100px; left: 200px; width: 480px;">
+  <div class="window hidden" id="win-projects" style="top: 50px; left: 520px; width: 440px;">
     <div class="title-bar">
       <div class="title-bar-text">C:\PROJECTS\*.*</div>
       <div class="title-bar-controls">
@@ -141,18 +127,18 @@
       <div class="project-card">
         <h3>1. Personal Website</h3>
         <p>A retro 90s aesthetic desktop website hosted on arul.cc.cd.</p>
-        <span class="badge">HTML/CSS/JS</span>
+        <span class="badge">HTML / CSS / JS</span>
       </div>
       <div class="project-card">
         <h3>2. Secret Project X</h3>
         <p>Currently in development. Stay tuned for updates.</p>
-        <span class="badge">WIP</span>
+        <span class="badge">In Progress</span>
       </div>
     </div>
   </div>
 
   <!-- Terminal Window -->
-  <div class="window hidden" id="win-terminal" style="top: 130px; left: 140px; width: 480px;">
+  <div class="window hidden" id="win-terminal" style="top: 360px; left: 80px; width: 450px;">
     <div class="title-bar">
       <div class="title-bar-text">MS-DOS Prompt</div>
       <div class="title-bar-controls">
@@ -175,7 +161,7 @@
   </div>
 
   <!-- Guestbook Window -->
-  <div class="window hidden" id="win-guestbook" style="top: 120px; left: 220px; width: 420px;">
+  <div class="window hidden" id="win-guestbook" style="top: 360px; left: 560px; width: 410px;">
     <div class="title-bar">
       <div class="title-bar-text">Guestbook.exe</div>
       <div class="title-bar-controls">
@@ -191,22 +177,22 @@
         </div>
         <div class="field">
           <label for="gb-msg">Message:</label>
-          <textarea id="gb-msg" rows="3" required placeholder="Leave a greeting..."></textarea>
+          <textarea id="gb-msg" rows="3" required placeholder="Leave a message..."></textarea>
         </div>
         <button type="submit" class="retro-btn">Sign Guestbook</button>
       </form>
       <div id="gb-entries">
         <div class="gb-entry">
-          <strong>System:</strong> Welcome visitors from arul.cc.cd!
+          <strong>System:</strong> Welcome visitors from arul.cc.cd
         </div>
       </div>
     </div>
   </div>
 
   <!-- Tetris Minigame Window (Hard Difficulty) -->
-  <div class="window hidden" id="win-tetris" style="top: 50px; left: 160px; width: 450px;">
+  <div class="window hidden" id="win-tetris" style="top: 80px; left: 240px; width: 440px;">
     <div class="title-bar">
-      <div class="title-bar-text">C:\GAMES\TETRIS.EXE [HARD MODE]</div>
+      <div class="title-bar-text">Tetris [Hard]</div>
       <div class="title-bar-controls">
         <button aria-label="Minimize" class="btn-min">_</button>
         <button aria-label="Close" class="btn-close">X</button>
@@ -218,8 +204,8 @@
           <canvas id="tetris-canvas" width="200" height="400"></canvas>
           <div id="tetris-overlay" class="tetris-overlay">
             <h3 id="tetris-overlay-title">HARD TETRIS</h3>
-            <p id="tetris-overlay-desc">Speed: Hyper / Lock: Fast</p>
-            <button id="tetris-start-btn" class="retro-btn" style="margin-top: 10px;">▶ START GAME</button>
+            <p id="tetris-overlay-desc">Speed: High</p>
+            <button id="tetris-start-btn" class="retro-btn" style="margin-top: 10px;">Start Game</button>
           </div>
         </div>
         <div class="tetris-side">
@@ -237,42 +223,45 @@
           </div>
           <div class="tetris-panel">
             <span class="panel-label">DIFFICULTY</span>
-            <div class="badge-hard">HARD ⚡</div>
+            <div class="badge-hard">HARD</div>
           </div>
-          <button id="tetris-bgm-toggle" class="retro-btn" style="font-size: 11px; margin-top: 6px;">🎵 Tetris BGM: Off</button>
+          <button id="tetris-bgm-toggle" class="retro-btn" style="font-size: 11px; margin-top: 6px;">Music: Off</button>
         </div>
       </div>
       <!-- Controls Bar -->
       <div class="tetris-controls">
-        <button id="t-left" class="retro-btn btn-sm">◀</button>
-        <button id="t-rot" class="retro-btn btn-sm">🔄 Spin</button>
-        <button id="t-right" class="retro-btn btn-sm">▶</button>
-        <button id="t-down" class="retro-btn btn-sm">▼ Soft</button>
-        <button id="t-drop" class="retro-btn btn-sm">⤓ Hard Drop</button>
-        <button id="t-pause" class="retro-btn btn-sm">⏸ Pause</button>
+        <button id="t-left" class="retro-btn btn-sm">Left</button>
+        <button id="t-rot" class="retro-btn btn-sm">Rotate</button>
+        <button id="t-right" class="retro-btn btn-sm">Right</button>
+        <button id="t-down" class="retro-btn btn-sm">Down</button>
+        <button id="t-drop" class="retro-btn btn-sm">Drop</button>
+        <button id="t-pause" class="retro-btn btn-sm">Pause</button>
       </div>
-      <p class="tetris-help">Controls: Arrow keys / Space to Drop / P to Pause</p>
+      <p class="tetris-help">Controls: Arrows / Space to Drop / P to Pause</p>
     </div>
   </div>
 
   <!-- Taskbar -->
   <footer class="taskbar">
-    <button class="start-btn" id="start-btn" title="Click to Start Tour & Play Kirby Theme!">
-      <span class="start-icon">⭐</span>
-      <strong>Start Tour</strong>
+    <button class="start-btn" id="start-btn" title="Start Website Tour">
+      <span class="start-flag">🪟</span>
+      <strong>Start</strong>
     </button>
     <div class="taskbar-tasks" id="taskbar-tasks"></div>
     <div class="tray">
-      <!-- Volume Control -->
-      <div class="vol-container">
-        <button id="vol-btn" title="Sound Volume">🔊 70%</button>
-        <div id="vol-popover" class="vol-popover hidden">
-          <div class="vol-title">Volume</div>
-          <input type="range" id="vol-slider" min="0" max="100" value="70">
-          <div class="vol-actions">
-            <button id="vol-btn-mute" class="retro-btn btn-xs">Mute</button>
-            <span id="vol-track-info" style="font-size: 10px; color: #555;">Zelda</span>
+      <!-- Volume Control (Logo only, hover/highlight shows vertical bar) -->
+      <div class="vol-control" id="vol-control">
+        <button id="vol-icon-btn" class="vol-icon-btn" title="Volume">
+          <span id="vol-icon">🔊</span>
+        </button>
+        <div class="vol-slider-popup" id="vol-popup">
+          <div class="vol-header">
+            <span id="vol-val-label">70%</span>
           </div>
+          <div class="vol-slider-track">
+            <input type="range" id="vol-range" min="0" max="100" value="70" orient="vertical">
+          </div>
+          <button id="vol-mute-btn" class="retro-btn vol-mute-btn">Mute</button>
         </div>
       </div>
       <button id="toggle-crt" title="Toggle CRT scanline effect">CRT: ON</button>
@@ -280,6 +269,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=2"></script>
 </body>
 </html>

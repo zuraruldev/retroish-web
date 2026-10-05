@@ -13,7 +13,12 @@
   --title-bg: #000080;
   --title-text: #ffffff;
   --font-pixel: 'VT323', monospace;
-  --font-sys: 'MS Sans Serif', Tahoma, sans-serif;
+  --font-sys: 'MS Sans Serif', Tahoma, Arial, sans-serif;
+}
+
+/* Global utility */
+.hidden {
+  display: none !important;
 }
 
 body {
@@ -22,34 +27,34 @@ body {
   height: 100vh;
   overflow: hidden;
   user-select: none;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 /* CRT Scanlines Overlay */
 .crt-filter .scanlines {
   position: fixed;
   inset: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.22) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
   background-size: 100% 4px, 6px 100%;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 99999;
 }
 
 /* Desktop */
 .desktop {
-  padding: 20px;
+  padding: 16px;
   display: grid;
-  grid-template-columns: repeat(auto-fill, 95px);
-  grid-gap: 20px;
+  grid-template-columns: repeat(auto-fill, 86px);
+  grid-gap: 16px;
 }
 
 .icon {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   cursor: pointer;
-  padding: 8px;
+  padding: 6px 4px;
   color: #fff;
   text-shadow: 1px 1px 2px #000;
   font-size: 12px;
@@ -59,7 +64,7 @@ body {
 
 .icon:focus, .icon:hover {
   background-color: rgba(0, 0, 128, 0.5);
-  border-color: #fffa;
+  border-color: rgba(255, 255, 255, 0.7);
 }
 
 .icon-img {
@@ -78,12 +83,8 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 280px;
-  max-width: 92vw;
+  max-width: 95vw;
   z-index: 10;
-}
-
-.window.hidden {
-  display: none !important;
 }
 
 .title-bar {
@@ -95,7 +96,6 @@ body {
   align-items: center;
   font-weight: bold;
   cursor: move;
-  font-family: var(--font-sys);
   font-size: 12px;
 }
 
@@ -110,6 +110,7 @@ body {
   font-weight: bold;
   font-size: 11px;
   cursor: pointer;
+  line-height: 14px;
 }
 
 .title-bar-controls button:active {
@@ -120,21 +121,21 @@ body {
 }
 
 .window-body {
-  padding: 14px;
+  padding: 12px;
   overflow-y: auto;
-  max-height: calc(85vh - 80px);
+  max-height: calc(85vh - 70px);
 }
 
 .window-body h2 {
-  font-size: 16px;
-  margin-bottom: 6px;
+  font-size: 15px;
+  margin-bottom: 4px;
 }
 
 .tagline {
   font-family: var(--font-pixel);
   font-size: 16px;
   color: #000080;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 hr {
@@ -151,30 +152,42 @@ hr {
   border-right: 2px solid var(--win-light);
   border-bottom: 2px solid var(--win-light);
   padding: 10px;
-  margin: 12px 0;
-  font-size: 13px;
+  margin: 10px 0;
+  font-size: 12px;
   line-height: 1.5;
 }
 
 .project-card {
   background: #eee;
   border: 1px solid var(--win-dark);
-  padding: 10px;
-  margin-bottom: 10px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.project-card h3 {
+  font-size: 13px;
+  margin-bottom: 4px;
 }
 
 .badge {
   display: inline-block;
   background: #000080;
   color: #fff;
-  font-size: 11px;
+  font-size: 10px;
   padding: 2px 6px;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-/* Entrance Dialog */
+/* Entrance Modal */
 .entrance-dialog {
-  box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  max-width: 90vw;
+  z-index: 10000;
+  box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .boot-header {
@@ -184,7 +197,7 @@ hr {
 }
 
 .boot-avatar {
-  font-size: 38px;
+  font-size: 32px;
 }
 
 .boot-status-box {
@@ -192,7 +205,7 @@ hr {
   color: #00ff66;
   font-family: var(--font-pixel);
   font-size: 16px;
-  padding: 10px;
+  padding: 8px 10px;
   border-top: 2px solid var(--win-darker);
   border-left: 2px solid var(--win-darker);
   border-right: 2px solid var(--win-light);
@@ -201,22 +214,17 @@ hr {
   line-height: 1.4;
 }
 
-.boot-status-box code {
-  color: #fff;
-}
-
 .btn-boot {
-  background: #008080 !important;
-  color: #fff !important;
-  padding: 8px 18px !important;
-  font-size: 14px !important;
-  letter-spacing: 0.5px;
+  background: var(--win-bg) !important;
+  color: #000 !important;
+  padding: 8px 20px !important;
+  font-size: 13px !important;
+  font-weight: bold;
   cursor: pointer;
-  box-shadow: 2px 2px 0 #000;
 }
 
-.btn-boot:hover {
-  background: #00a8a8 !important;
+.btn-boot:active {
+  background: #a0a0a0 !important;
 }
 
 /* Terminal */
@@ -230,7 +238,7 @@ hr {
 
 #term-output {
   white-space: pre-wrap;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .term-input-row {
@@ -262,9 +270,9 @@ hr {
   border-left: 2px solid var(--win-darker);
   border-right: 2px solid var(--win-light);
   border-bottom: 2px solid var(--win-light);
-  padding: 6px;
+  padding: 5px;
   font-family: inherit;
-  font-size: 13px;
+  font-size: 12px;
   outline: none;
 }
 
@@ -274,7 +282,7 @@ hr {
   border-left: 2px solid var(--win-light);
   border-right: 2px solid var(--win-darker);
   border-bottom: 2px solid var(--win-darker);
-  padding: 5px 12px;
+  padding: 4px 10px;
   font-weight: bold;
   cursor: pointer;
   font-size: 12px;
@@ -293,81 +301,47 @@ hr {
   font-size: 11px;
 }
 
-.btn-xs {
-  padding: 2px 6px;
-  font-size: 10px;
-}
-
 #gb-entries {
-  margin-top: 14px;
-  max-height: 120px;
+  margin-top: 12px;
+  max-height: 110px;
   overflow-y: auto;
   border: 1px solid var(--win-dark);
   background: #fff;
-  padding: 8px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   font-size: 12px;
 }
 
-/* Kirby Walker Animation */
+/* Kirby Walker (Hidden by default, only walks across bottom during tour) */
 .kirby-container {
   position: fixed;
-  bottom: 45px;
-  left: -100px;
-  z-index: 1001;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  bottom: 38px;
+  left: -90px;
+  z-index: 1005;
   pointer-events: none;
-  transition: transform 0.1s linear;
-}
-
-.kirby-speech {
-  background: #fff;
-  border: 2px solid #000;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-family: var(--font-pixel);
-  font-size: 16px;
-  color: #000;
-  white-space: nowrap;
-  margin-bottom: 6px;
-  box-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-  position: relative;
-}
-
-.kirby-speech::after {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px 6px 0;
-  border-style: solid;
-  border-color: #000 transparent;
-  display: block;
-  width: 0;
+  display: flex;
+  align-items: center;
 }
 
 .kirby-svg {
-  filter: drop-shadow(2px 3px 2px rgba(0, 0, 0, 0.4));
-  animation: kirbyBob 0.35s infinite alternate ease-in-out;
+  filter: drop-shadow(1px 2px 2px rgba(0, 0, 0, 0.4));
+  animation: kirbyBob 0.32s infinite alternate ease-in-out;
 }
 
 @keyframes kirbyBob {
   0% { transform: translateY(0); }
-  100% { transform: translateY(-8px); }
+  100% { transform: translateY(-6px); }
 }
 
 .kirby-foot-left {
-  animation: footL 0.35s infinite alternate ease-in-out;
+  animation: footL 0.32s infinite alternate ease-in-out;
   transform-origin: 34px 85px;
 }
 
 .kirby-foot-right {
-  animation: footR 0.35s infinite alternate ease-in-out;
+  animation: footR 0.32s infinite alternate ease-in-out;
   transform-origin: 66px 85px;
 }
 
@@ -381,45 +355,9 @@ hr {
   100% { transform: translateY(-4px) rotate(-10deg); }
 }
 
-.kirby-arm-right {
-  animation: armWave 0.6s infinite alternate ease-in-out;
-  transform-origin: 78px 50px;
-}
-
-@keyframes armWave {
-  0% { transform: rotate(15deg); }
-  100% { transform: rotate(45deg); }
-}
-
-/* Tour Toast */
-.tour-toast {
-  position: fixed;
-  top: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #ffffe1;
-  border: 2px solid #000080;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
-  padding: 8px 16px;
-  font-family: var(--font-sys);
-  font-weight: bold;
-  font-size: 13px;
-  color: #000;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from { top: -50px; opacity: 0; }
-  to { top: 15px; opacity: 1; }
-}
-
 /* Tetris Game */
 .tetris-body {
-  padding: 10px;
+  padding: 8px;
   background: var(--win-bg);
 }
 
@@ -447,39 +385,34 @@ hr {
 .tetris-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.82);
   color: #fff;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 10px;
+  padding: 8px;
   z-index: 5;
-}
-
-.tetris-overlay.hidden {
-  display: none !important;
 }
 
 .tetris-overlay h3 {
   font-family: var(--font-pixel);
-  font-size: 26px;
+  font-size: 24px;
   color: #ff3366;
-  text-shadow: 1px 1px 0 #fff;
 }
 
 .tetris-overlay p {
   font-family: var(--font-pixel);
-  font-size: 18px;
+  font-size: 16px;
   color: #ffff00;
 }
 
 .tetris-side {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  width: 140px;
+  gap: 6px;
+  width: 120px;
 }
 
 .tetris-panel {
@@ -488,16 +421,16 @@ hr {
   border-left: 2px solid var(--win-darker);
   border-right: 2px solid var(--win-light);
   border-bottom: 2px solid var(--win-light);
-  padding: 6px;
+  padding: 4px;
   text-align: center;
 }
 
 .panel-label {
   display: block;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: bold;
   color: #333;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 #tetris-next {
@@ -508,24 +441,17 @@ hr {
 
 .tetris-val {
   font-family: var(--font-pixel);
-  font-size: 22px;
+  font-size: 20px;
   color: #000080;
   font-weight: bold;
 }
 
 .badge-hard {
-  background: #d80000;
+  background: #c00000;
   color: #fff;
   font-weight: bold;
-  font-size: 12px;
-  padding: 3px 6px;
-  letter-spacing: 1px;
-  animation: pulseHard 1s infinite alternate;
-}
-
-@keyframes pulseHard {
-  0% { transform: scale(0.96); }
-  100% { transform: scale(1.04); }
+  font-size: 11px;
+  padding: 2px 4px;
 }
 
 .tetris-controls {
@@ -540,16 +466,16 @@ hr {
   font-size: 11px;
   color: #444;
   text-align: center;
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
-/* Taskbar & Volume */
+/* Taskbar */
 .taskbar {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 34px;
+  height: 32px;
   background-color: var(--win-bg);
   border-top: 2px solid var(--win-light);
   display: flex;
@@ -563,7 +489,7 @@ hr {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
+  padding: 2px 8px;
   background: var(--win-bg);
   border-top: 2px solid var(--win-light);
   border-left: 2px solid var(--win-light);
@@ -571,7 +497,8 @@ hr {
   border-bottom: 2px solid var(--win-darker);
   font-weight: bold;
   cursor: pointer;
-  height: 26px;
+  height: 24px;
+  font-size: 12px;
 }
 
 .start-btn:active, .start-btn.touring {
@@ -580,6 +507,10 @@ hr {
   border-right: 2px solid var(--win-light);
   border-bottom: 2px solid var(--win-light);
   background: #d0d0d0;
+}
+
+.start-flag {
+  font-size: 14px;
 }
 
 .taskbar-tasks {
@@ -602,6 +533,8 @@ hr {
   max-width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
+  height: 24px;
+  line-height: 18px;
 }
 
 .task-item.active {
@@ -617,12 +550,13 @@ hr {
   border-left: 2px solid var(--win-dark);
   border-right: 2px solid var(--win-light);
   border-bottom: 2px solid var(--win-light);
-  padding: 3px 8px;
-  font-size: 12px;
+  padding: 2px 6px;
+  font-size: 11px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  position: relative;
+  gap: 6px;
+  height: 24px;
+  background: var(--win-bg);
 }
 
 .tray button {
@@ -630,59 +564,95 @@ hr {
   border: 1px solid var(--win-dark);
   font-size: 11px;
   cursor: pointer;
-  padding: 2px 5px;
+  padding: 1px 4px;
   font-family: inherit;
+  height: 20px;
 }
 
 .tray button:active {
   background: #b0b0b0;
 }
 
-/* Volume popover */
-.vol-container {
+/* Volume Control - Logo only, popup on hover/focus */
+.vol-control {
   position: relative;
+  display: inline-flex;
+  align-items: center;
 }
 
-.vol-popover {
+.vol-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  font-size: 14px !important;
+  padding: 0 2px !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px !important;
+}
+
+.vol-slider-popup {
   position: absolute;
-  bottom: 30px;
+  bottom: calc(100% + 6px);
   right: -10px;
   background: var(--win-bg);
   border-top: 2px solid var(--win-light);
   border-left: 2px solid var(--win-light);
   border-right: 2px solid var(--win-darker);
   border-bottom: 2px solid var(--win-darker);
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.3);
-  padding: 8px;
-  width: 130px;
-  z-index: 1002;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.35);
+  padding: 8px 6px;
+  width: 58px;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  z-index: 10005;
 }
 
-.vol-popover.hidden {
-  display: none !important;
+/* Highlight / Hover / Active popup trigger */
+.vol-control:hover .vol-slider-popup,
+.vol-control:focus-within .vol-slider-popup,
+.vol-slider-popup.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
-.vol-title {
+.vol-header {
+  font-size: 10px;
   font-weight: bold;
-  font-size: 11px;
-  text-align: center;
 }
 
-#vol-slider {
-  width: 100%;
+.vol-slider-track {
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#vol-range {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  -webkit-appearance: slider-vertical;
+  appearance: slider-vertical;
+  width: 14px;
+  height: 80px;
   cursor: pointer;
 }
 
-.vol-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.vol-mute-btn {
+  font-size: 9px !important;
+  padding: 1px 4px !important;
+  width: 100%;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
   .window {
     width: 95vw !important;
     left: 2.5vw !important;
@@ -690,14 +660,5 @@ hr {
   }
   .entrance-dialog {
     transform: translate(-50%, -50%) !important;
-  }
-  .tetris-layout {
-    flex-direction: column;
-    align-items: center;
-  }
-  .tetris-side {
-    flex-direction: row;
-    width: 100%;
-    justify-content: center;
   }
 }

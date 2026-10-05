@@ -1,62 +1,59 @@
 document.addEventListener('DOMContentLoaded', () => {
   let highestZ = 20;
 
-  // --- AUDIO MANAGER ---
-  const audioTracks = {
+  // --- AUDIO ENGINE ---
+  const tracks = {
     zelda: new Audio('assets/zelda.mp3'),
     kirby: new Audio('assets/kirby.mp3'),
     tetris: new Audio('assets/tetris.mp3')
   };
 
-  Object.values(audioTracks).forEach(audio => {
+  Object.values(tracks).forEach(audio => {
     audio.loop = true;
     audio.preload = 'auto';
   });
 
-  let currentTrackName = 'zelda';
+  let currentTrack = 'zelda';
   let isMuted = false;
-  let currentVolume = 0.7; // default 70%
-  let hasUserInteracted = false;
+  let currentVolume = 0.7;
+  let audioUnlocked = false;
 
   function applyVolume() {
-    const vol = isMuted ? 0 : currentVolume;
-    Object.values(audioTracks).forEach(audio => {
-      audio.volume = vol;
+    const effectiveVol = isMuted ? 0 : currentVolume;
+    Object.values(tracks).forEach(audio => {
+      audio.volume = effectiveVol;
     });
 
-    const volBtn = document.getElementById('vol-btn');
-    const volSlider = document.getElementById('vol-slider');
-    const volMuteBtn = document.getElementById('vol-btn-mute');
-    const trackInfo = document.getElementById('vol-track-info');
+    const volIcon = document.getElementById('vol-icon');
+    const volValLabel = document.getElementById('vol-val-label');
+    const volRange = document.getElementById('vol-range');
+    const volMuteBtn = document.getElementById('vol-mute-btn');
 
-    if (volSlider) volSlider.value = Math.round(currentVolume * 100);
+    if (volRange) volRange.value = Math.round(currentVolume * 100);
+    if (volValLabel) volValLabel.textContent = isMuted ? 'Muted' : `${Math.round(currentVolume * 100)}%`;
 
-    if (volBtn) {
+    if (volIcon) {
       if (isMuted || currentVolume === 0) {
-        volBtn.textContent = '🔇 Mute';
+        volIcon.textContent = '🔇';
       } else if (currentVolume < 0.4) {
-        volBtn.textContent = `🔈 ${Math.round(currentVolume * 100)}%`;
+        volIcon.textContent = '🔈';
       } else {
-        volBtn.textContent = `🔊 ${Math.round(currentVolume * 100)}%`;
+        volIcon.textContent = '🔊';
       }
     }
 
     if (volMuteBtn) {
       volMuteBtn.textContent = isMuted ? 'Unmute' : 'Mute';
     }
-
-    if (trackInfo) {
-      trackInfo.textContent = currentTrackName.toUpperCase();
-    }
   }
 
   function playTrack(name) {
-    currentTrackName = name;
+    currentTrack = name;
     applyVolume();
-    if (!hasUserInteracted) return;
+    if (!audioUnlocked) return;
 
-    Object.entries(audioTracks).forEach(([track, audio]) => {
-      if (track === name) {
+    Object.entries(tracks).forEach(([key, audio]) => {
+      if (key === name) {
         audio.play().catch(() => {});
       } else {
         audio.pause();
@@ -64,27 +61,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Volume UI setup
-  const volBtn = document.getElementById('vol-btn');
-  const volPopover = document.getElementById('vol-popover');
-  const volSlider = document.getElementById('vol-slider');
-  const volMuteBtn = document.getElementById('vol-btn-mute');
+  function pauseAllAudio() {
+    Object.values(tracks).forEach(audio => audio.pause());
+  }
 
-  if (volBtn && volPopover) {
-    volBtn.addEventListener('click', (e) => {
+  function unlockAudioAndPlay(name = 'zelda') {
+    audioUnlocked = true;
+    playTrack(name);
+  }
+
+  // Fallback: any user gesture unlocks audio if not already done
+  function gestureUnlock() {
+    if (!audioUnlocked) {
+      unlockAudioAndPlay(currentTrack);
+    }
+  }
+  window.addEventListener('pointerdown', gestureUnlock, { once: true });
+  window.addEventListener('keydown', gestureUnlock, { once: true });
+
+  // Volume UI setup
+  const volControl = document.getElementById('vol-control');
+  const volIconBtn = document.getElementById('vol-icon-btn');
+  const volPopup = document.getElementById('vol-popup');
+  const volRange = document.getElementById('vol-range');
+  const volMuteBtn = document.getElementById('vol-mute-btn');
+
+  if (volIconBtn && volPopup) {
+    volIconBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      volPopover.classList.toggle('hidden');
+      volPopup.classList.toggle('show');
     });
 
     document.addEventListener('click', (e) => {
-      if (!volPopover.contains(e.target) && e.target !== volBtn) {
-        volPopover.classList.add('hidden');
+      if (volControl && !volControl.contains(e.target)) {
+        volPopup.classList.remove('show');
       }
     });
   }
 
-  if (volSlider) {
-    volSlider.addEventListener('input', (e) => {
+  if (volRange) {
+    volRange.addEventListener('input', (e) => {
       currentVolume = parseInt(e.target.value, 10) / 100;
       if (isMuted && currentVolume > 0) isMuted = false;
       applyVolume();
@@ -92,7 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (volMuteBtn) {
-    volMuteBtn.addEventListener('click', () => {
+    volMuteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       isMuted = !isMuted;
       applyVolume();
     });
@@ -111,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setInterval(updateClock, 1000);
   updateClock();
 
-  // --- CRT TOGGLE ---
+  // --- CRT SCANLINE TOGGLE ---
   const crtBtn = document.getElementById('toggle-crt');
   if (crtBtn) {
     crtBtn.addEventListener('click', () => {
@@ -136,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!taskbarTasks) return;
     taskbarTasks.innerHTML = '';
     windows.forEach(win => {
-      // Don't show entrance modal on taskbar
       if (win.id === 'win-entrance') return;
 
       if (!win.classList.contains('hidden')) {
@@ -160,7 +176,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Controls & Dragging
+  function openWindow(winId) {
+    const win = document.getElementById(winId);
+    if (win) {
+      win.classList.remove('hidden');
+      bringToFront(win);
+    }
+  }
+
+  // Dragging and window buttons
   windows.forEach(win => {
     win.addEventListener('mousedown', () => bringToFront(win));
 
@@ -172,7 +196,10 @@ document.addEventListener('DOMContentLoaded', () => {
         win.classList.remove('active');
         updateTaskbar();
 
-        // Pause Tetris if closed
+        if (win.id === 'win-entrance') {
+          unlockAudioAndPlay('zelda');
+        }
+
         if (win.id === 'win-tetris' && window.TetrisGame) {
           window.TetrisGame.pause();
         }
@@ -200,18 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
         bringToFront(win);
         startX = e.clientX;
         startY = e.clientY;
-        initialLeft = win.offsetLeft;
-        initialTop = win.offsetTop;
 
-        // Clear center-transform if dragging entrance modal
-        if (win.style.transform) {
+        if (win.style.transform && win.style.transform !== 'none') {
           const rect = win.getBoundingClientRect();
           win.style.transform = 'none';
           win.style.left = `${rect.left}px`;
           win.style.top = `${rect.top}px`;
-          initialLeft = rect.left;
-          initialTop = rect.top;
         }
+
+        initialLeft = win.offsetLeft;
+        initialTop = win.offsetTop;
 
         const onMouseMove = (ev) => {
           if (!isDragging) return;
@@ -233,15 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Desktop Icons Click/Double-click
-  function openWindow(winId) {
-    const win = document.getElementById(winId);
-    if (win) {
-      win.classList.remove('hidden');
-      bringToFront(win);
-    }
-  }
-
+  // Desktop Icons
   document.querySelectorAll('.icon').forEach(icon => {
     icon.addEventListener('dblclick', () => {
       const targetId = icon.getAttribute('data-window');
@@ -258,11 +275,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- ENTRANCE BOOT MODAL ---
   const winEntrance = document.getElementById('win-entrance');
   const btnEnter = document.getElementById('btn-enter-system');
-  const btnEntranceClose = document.getElementById('btn-entrance-close');
 
-  function enterSystem() {
-    hasUserInteracted = true;
-    playTrack('zelda'); // Default theme on open
+  function enterStation() {
+    unlockAudioAndPlay('zelda');
     if (winEntrance) {
       winEntrance.classList.add('hidden');
       winEntrance.classList.remove('active');
@@ -270,168 +285,200 @@ document.addEventListener('DOMContentLoaded', () => {
     updateTaskbar();
   }
 
-  if (btnEnter) btnEnter.addEventListener('click', enterSystem);
-  if (btnEntranceClose) btnEntranceClose.addEventListener('click', enterSystem);
+  if (btnEnter) {
+    btnEnter.addEventListener('click', enterStation);
+  }
 
   // --- KIRBY & AUTO TOUR ---
   const startBtn = document.getElementById('start-btn');
   const kirbyWalker = document.getElementById('kirby-walker');
-  const kirbySpeech = document.getElementById('kirby-speech');
-  const tourToast = document.getElementById('tour-toast');
-  const tourToastText = document.getElementById('tour-toast-text');
-
-  let tourTimer = null;
   let kirbyAnimFrame = null;
-  let kirbyX = -120;
-  let kirbySpeed = 2.4;
+  let isTourRunning = false;
 
-  function showToast(text, duration = 3000) {
-    if (!tourToast || !tourToastText) return;
-    tourToastText.textContent = text;
-    tourToast.classList.remove('hidden');
-    clearTimeout(showToast.timer);
-    showToast.timer = setTimeout(() => {
-      tourToast.classList.add('hidden');
-    }, duration);
-  }
-
-  function startKirbyWalk() {
+  function runKirbyAnimation() {
     if (!kirbyWalker) return;
     kirbyWalker.classList.remove('hidden');
-    kirbyX = -100;
+    let x = -80;
+    const speed = 3;
+
     cancelAnimationFrame(kirbyAnimFrame);
+    function step() {
+      x += speed;
+      kirbyWalker.style.left = `${x}px`;
 
-    function animateKirby() {
-      kirbyX += kirbySpeed;
-      kirbyWalker.style.left = `${kirbyX}px`;
-
-      if (kirbyX < window.innerWidth + 120) {
-        kirbyAnimFrame = requestAnimationFrame(animateKirby);
+      if (x < window.innerWidth + 80) {
+        kirbyAnimFrame = requestAnimationFrame(step);
       } else {
         kirbyWalker.classList.add('hidden');
       }
     }
-    kirbyAnimFrame = requestAnimationFrame(animateKirby);
+    kirbyAnimFrame = requestAnimationFrame(step);
   }
 
-  function setKirbySpeech(text) {
-    if (kirbySpeech) kirbySpeech.textContent = text;
+  function positionTourWindows() {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+
+    const about = document.getElementById('win-about');
+    const projects = document.getElementById('win-projects');
+    const terminal = document.getElementById('win-terminal');
+    const guestbook = document.getElementById('win-guestbook');
+
+    if (w >= 980) {
+      // 4 quadrant spacing - no overlapping
+      if (about) {
+        about.style.left = '40px';
+        about.style.top = '30px';
+        about.style.width = '380px';
+      }
+      if (projects) {
+        projects.style.left = `${Math.max(440, w - 480)}px`;
+        projects.style.top = '30px';
+        projects.style.width = '440px';
+      }
+      if (terminal) {
+        terminal.style.left = '40px';
+        terminal.style.top = `${Math.min(360, h - 360)}px`;
+        terminal.style.width = '430px';
+      }
+      if (guestbook) {
+        guestbook.style.left = `${Math.max(440, w - 460)}px`;
+        guestbook.style.top = `${Math.min(360, h - 360)}px`;
+        guestbook.style.width = '400px';
+      }
+    } else {
+      // Mobile / medium screen cascaded offsets
+      const wins = [about, projects, terminal, guestbook];
+      wins.forEach((win, idx) => {
+        if (win) {
+          win.style.left = `${20 + idx * 24}px`;
+          win.style.top = `${30 + idx * 28}px`;
+        }
+      });
+    }
   }
 
-  function runWebsiteTour() {
-    hasUserInteracted = true;
-    playTrack('kirby'); // Kirby theme on Start button
+  function startWebsiteTour() {
+    if (isTourRunning) return;
+    isTourRunning = true;
+    unlockAudioAndPlay('kirby'); // Kirby BGM during tour
 
     if (startBtn) startBtn.classList.add('touring');
-    startKirbyWalk();
+    runKirbyAnimation();
+    positionTourWindows();
 
-    // Tour Timeline
-    const steps = [
-      {
-        delay: 300,
-        action: () => {
-          showToast('🌟 Step 1: Opening About Me...', 2800);
-          setKirbySpeech("Hi! I'm Kirby! Let's check out Arul! 📁");
-          openWindow('win-about');
-        }
-      },
-      {
-        delay: 3200,
-        action: () => {
-          showToast('💾 Step 2: Projects Showcase...', 2800);
-          setKirbySpeech('Cool retro projects built right here! 💾');
-          openWindow('win-projects');
-        }
-      },
-      {
-        delay: 6200,
-        action: () => {
-          showToast('📟 Step 3: MS-DOS Prompt...', 3200);
-          setKirbySpeech('Hacking the terminal! Type "help" anytime! 📟');
-          openWindow('win-terminal');
-          // Auto type command demo
-          const termInput = document.getElementById('term-input');
-          const termOutput = document.getElementById('term-output');
-          if (termInput && termOutput) {
-            termInput.value = 'help';
-            setTimeout(() => {
-              const demoResp = document.createElement('div');
-              demoResp.innerHTML = '<div>C:\\&gt; help</div><div>Commands: help, about, date, clear, domain, contact</div><br>';
-              termOutput.appendChild(demoResp);
-              termOutput.scrollTop = termOutput.scrollHeight;
-              termInput.value = '';
-            }, 600);
-          }
-        }
-      },
-      {
-        delay: 9800,
-        action: () => {
-          showToast('📝 Step 4: Sign the Guestbook...', 2800);
-          setKirbySpeech('Leave a greeting in the guestbook! 📝');
-          openWindow('win-guestbook');
-        }
-      },
-      {
-        delay: 13000,
-        action: () => {
-          showToast('🕹️ Step 5: Ready for Hard Tetris?', 3200);
-          setKirbySpeech('Try Tetris.exe if you dare! Enjoy! ⭐');
-          openWindow('win-tetris');
-          if (startBtn) startBtn.classList.remove('touring');
-        }
-      }
+    // Sequentially open windows without Tetris
+    const tourSequence = [
+      { delay: 200, winId: 'win-about' },
+      { delay: 1500, winId: 'win-projects' },
+      { delay: 2800, winId: 'win-terminal' },
+      { delay: 4200, winId: 'win-guestbook' }
     ];
 
-    steps.forEach(step => {
-      setTimeout(step.action, step.delay);
+    tourSequence.forEach(item => {
+      setTimeout(() => {
+        openWindow(item.winId);
+      }, item.delay);
     });
+
+    setTimeout(() => {
+      if (startBtn) startBtn.classList.remove('touring');
+      isTourRunning = false;
+    }, 5500);
   }
 
   if (startBtn) {
-    startBtn.addEventListener('click', () => {
-      runWebsiteTour();
-    });
+    startBtn.addEventListener('click', startWebsiteTour);
   }
 
-  // --- TERMINAL COMMANDS ---
+  // --- TERMINAL COMMANDS & SOUND CONTROL ---
   const termInput = document.getElementById('term-input');
   const termOutput = document.getElementById('term-output');
 
   if (termInput) {
     termInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
-        const cmd = termInput.value.trim().toLowerCase();
+        const fullCmd = termInput.value.trim();
+        const cmdParts = fullCmd.toLowerCase().split(/\s+/);
+        const cmd = cmdParts[0];
+        const arg = cmdParts[1];
         termInput.value = '';
 
         let response = '';
+
         if (cmd === 'help') {
-          response = 'Commands: help, about, tour, tetris, music, date, clear, domain, contact';
-        } else if (cmd === 'about') {
-          response = 'Arul - Retro enthusiast & web maker.';
+          response = [
+            'Available commands:',
+            '  sound <track>   - Change BGM (zelda, kirby, tetris, stop, play)',
+            '  volume <0-100>  - Adjust volume level',
+            '  tour            - Run interactive site tour',
+            '  tetris          - Launch Tetris minigame',
+            '  about           - Open About Me',
+            '  projects        - Open Projects',
+            '  guestbook       - Open Guestbook',
+            '  clear           - Clear terminal screen',
+            '  date            - Show date & time',
+            '  domain          - Domain information'
+          ].join('\n');
+        } else if (cmd === 'sound') {
+          if (!arg || arg === 'list') {
+            response = 'Usage: sound [zelda | kirby | tetris | stop | play]';
+          } else if (arg === 'zelda') {
+            unlockAudioAndPlay('zelda');
+            response = 'Now playing: Zelda Theme.';
+          } else if (arg === 'kirby') {
+            unlockAudioAndPlay('kirby');
+            response = 'Now playing: Kirby Theme.';
+          } else if (arg === 'tetris') {
+            unlockAudioAndPlay('tetris');
+            response = 'Now playing: Tetris Theme.';
+          } else if (arg === 'stop' || arg === 'pause') {
+            pauseAllAudio();
+            response = 'Audio playback paused.';
+          } else if (arg === 'play' || arg === 'resume') {
+            unlockAudioAndPlay(currentTrack);
+            response = `Resumed playing: ${currentTrack}.`;
+          } else {
+            response = `Unknown soundtrack: ${arg}. Choose from zelda, kirby, tetris, stop.`;
+          }
+        } else if (cmd === 'volume') {
+          const val = parseInt(arg, 10);
+          if (!isNaN(val) && val >= 0 && val <= 100) {
+            currentVolume = val / 100;
+            isMuted = false;
+            applyVolume();
+            response = `Volume set to ${val}%.`;
+          } else {
+            response = 'Usage: volume <0-100>';
+          }
         } else if (cmd === 'tour') {
-          runWebsiteTour();
-          response = 'Initiating interactive site tour...';
+          startWebsiteTour();
+          response = 'Starting site tour...';
         } else if (cmd === 'tetris') {
           openWindow('win-tetris');
-          response = 'Launching TETRIS.EXE [HARD MODE]...';
-        } else if (cmd === 'music') {
-          response = `Current soundtrack: ${currentTrackName.toUpperCase()} (Volume: ${Math.round(currentVolume * 100)}%)`;
+          response = 'Launching Tetris [Hard]...';
+        } else if (cmd === 'about') {
+          openWindow('win-about');
+          response = 'Opened About Me.';
+        } else if (cmd === 'projects') {
+          openWindow('win-projects');
+          response = 'Opened Projects.';
+        } else if (cmd === 'guestbook') {
+          openWindow('win-guestbook');
+          response = 'Opened Guestbook.';
         } else if (cmd === 'date') {
           response = new Date().toString();
         } else if (cmd === 'domain') {
-          response = 'Domain: arul.cc.cd (Cloudflare Tunnel: Active)';
+          response = 'Domain: arul.cc.cd';
         } else if (cmd === 'clear') {
           termOutput.innerHTML = '';
           return;
-        } else if (cmd === 'contact') {
-          response = 'Email: hello@arul.cc.cd';
         } else if (cmd !== '') {
           response = `Bad command or file name: "${cmd}"`;
         }
 
         const entry = document.createElement('div');
-        entry.innerHTML = `<div>C:\\&gt; ${cmd}</div>${response ? `<div>${response}</div>` : ''}<br>`;
+        entry.innerHTML = `<div>C:\\&gt; ${escapeHtml(fullCmd)}</div>${response ? `<div>${escapeHtml(response)}</div>` : ''}<br>`;
         termOutput.appendChild(entry);
         termOutput.scrollTop = termOutput.scrollHeight;
       }
@@ -461,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
-  // --- HARD TETRIS ENGINE ---
+  // --- TETRIS (HARD DIFFICULTY) ---
   const canvas = document.getElementById('tetris-canvas');
   const nextCanvas = document.getElementById('tetris-next');
   const ctx = canvas ? canvas.getContext('2d') : null;
@@ -477,9 +524,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const COLS = 10;
   const ROWS = 20;
-  const BLOCK_SIZE = 20; // 10 * 20 = 200, 20 * 20 = 400
+  const BLOCK_SIZE = 20;
 
-  // Hard Tetris Pieces & Retro Colors
   const PIECES = [
     { name: 'I', shape: [[1, 1, 1, 1]], color: '#00ffff' },
     { name: 'J', shape: [[1, 0, 0], [1, 1, 1]], color: '#0000ff' },
@@ -500,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let gameOver = false;
   let isPaused = false;
   let gameInterval = null;
-  let baseSpeed = 180; // Hard mode default: very fast 180ms
+  let baseSpeed = 170; // Hard mode speed
   let tetrisBgmActive = false;
 
   function randomPiece() {
@@ -515,7 +561,6 @@ document.addEventListener('DOMContentLoaded', () => {
     c.fillStyle = color;
     c.fillRect(x * size, y * size, size, size);
 
-    // Retro bevel
     c.strokeStyle = '#ffffff';
     c.lineWidth = 1;
     c.beginPath();
@@ -534,23 +579,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function draw() {
     if (!ctx) return;
-    ctx.fillStyle = '#050510';
+    ctx.fillStyle = '#060614';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Draw board
     for (let r = 0; r < ROWS; r++) {
       for (let c = 0; c < COLS; c++) {
         if (board[r][c]) {
           drawBlock(ctx, c, r, board[r][c]);
         } else {
-          // faint grid dots
-          ctx.fillStyle = '#111122';
+          ctx.fillStyle = '#101020';
           ctx.fillRect(c * BLOCK_SIZE + 9, r * BLOCK_SIZE + 9, 2, 2);
         }
       }
     }
 
-    // Draw current piece
     if (currentPiece) {
       currentPiece.shape.forEach((row, r) => {
         row.forEach((cell, c) => {
@@ -561,7 +603,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Draw Next Piece
     if (nextCtx && nextPiece) {
       nextCtx.fillStyle = '#000';
       nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
@@ -629,7 +670,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // Clear completed lines
     let cleared = 0;
     for (let r = ROWS - 1; r >= 0; r--) {
       if (board[r].every(cell => cell !== 0)) {
@@ -642,14 +682,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (cleared > 0) {
       lines += cleared;
-      // Hard mode bonus scoring
-      const lineMultipliers = [0, 100, 300, 600, 1200];
-      score += (lineMultipliers[cleared] || 1500);
+      const scores = [0, 100, 300, 600, 1200];
+      score += (scores[cleared] || 1500);
       if (scoreEl) scoreEl.textContent = String(score).padStart(5, '0');
       if (linesEl) linesEl.textContent = lines;
 
-      // Speed up in Hard mode (down to 70ms minimum)
-      baseSpeed = Math.max(70, 180 - Math.floor(lines / 3) * 10);
+      baseSpeed = Math.max(65, 170 - Math.floor(lines / 2) * 10);
       restartInterval();
     }
 
@@ -686,7 +724,7 @@ document.addEventListener('DOMContentLoaded', () => {
     board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
     score = 0;
     lines = 0;
-    baseSpeed = 180;
+    baseSpeed = 170;
     gameOver = false;
     isPaused = false;
     if (scoreEl) scoreEl.textContent = '00000';
@@ -694,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) overlay.classList.add('hidden');
 
     if (tetrisBgmActive) {
-      playTrack('tetris');
+      unlockAudioAndPlay('tetris');
     }
 
     nextPiece = randomPiece();
@@ -709,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) {
       overlayTitle.textContent = 'GAME OVER';
       overlayDesc.textContent = `Score: ${score} | Lines: ${lines}`;
-      startBtnTetris.textContent = '🔄 TRY AGAIN';
+      startBtnTetris.textContent = 'Try Again';
       overlay.classList.remove('hidden');
     }
   }
@@ -721,8 +759,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (gameInterval) clearInterval(gameInterval);
       if (overlay) {
         overlayTitle.textContent = 'PAUSED';
-        overlayDesc.textContent = 'Hard Mode [180ms Speed]';
-        startBtnTetris.textContent = '▶ RESUME';
+        overlayDesc.textContent = 'Press P or Resume to continue';
+        startBtnTetris.textContent = 'Resume';
         overlay.classList.remove('hidden');
       }
     } else {
@@ -750,16 +788,15 @@ document.addEventListener('DOMContentLoaded', () => {
   if (bgmToggleTetris) {
     bgmToggleTetris.addEventListener('click', () => {
       tetrisBgmActive = !tetrisBgmActive;
-      bgmToggleTetris.textContent = tetrisBgmActive ? '🎵 Tetris BGM: On' : '🎵 Tetris BGM: Off';
+      bgmToggleTetris.textContent = tetrisBgmActive ? 'Music: On' : 'Music: Off';
       if (tetrisBgmActive) {
-        playTrack('tetris');
+        unlockAudioAndPlay('tetris');
       } else {
-        playTrack('zelda');
+        unlockAudioAndPlay('zelda');
       }
     });
   }
 
-  // Keyboard controls
   window.addEventListener('keydown', (e) => {
     const tetrisWin = document.getElementById('win-tetris');
     if (!tetrisWin || tetrisWin.classList.contains('hidden')) return;
@@ -809,7 +846,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Touch / Button controls for Tetris
   document.getElementById('t-left')?.addEventListener('click', () => {
     if (!collides(pieceX - 1, pieceY)) { pieceX--; draw(); }
   });
@@ -828,7 +864,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('t-drop')?.addEventListener('click', hardDrop);
   document.getElementById('t-pause')?.addEventListener('click', togglePause);
 
-  // Initial draw of Tetris board
   draw();
   updateTaskbar();
 });
