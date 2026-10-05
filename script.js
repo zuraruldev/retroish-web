@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isMuted = false;
   let currentVolume = 0.7;
   let audioUnlocked = false;
+  let manualCommandTrack = false; // Set to true ONLY via terminal 'sound' command
 
   function applyVolume() {
     const effectiveVol = isMuted ? 0 : currentVolume;
@@ -47,33 +48,64 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function playTrack(name) {
+  function playTrack(name, fromStart = true) {
     currentTrack = name;
     applyVolume();
     if (!audioUnlocked) return;
 
     Object.entries(tracks).forEach(([key, audio]) => {
       if (key === name) {
+        if (fromStart) {
+          audio.currentTime = 0;
+        }
         audio.play().catch(() => {});
       } else {
         audio.pause();
+        audio.currentTime = 0; // Reset other tracks to beginning
       }
     });
   }
 
   function pauseAllAudio() {
-    Object.values(tracks).forEach(audio => audio.pause());
+    Object.values(tracks).forEach(audio => {
+      audio.pause();
+    });
   }
 
-  function unlockAudioAndPlay(name = 'zelda') {
+  function unlockAudioAndPlay(name = 'zelda', fromStart = true) {
     audioUnlocked = true;
-    playTrack(name);
+    playTrack(name, fromStart);
   }
 
-  // Fallback: any user gesture unlocks audio if not already done
+  function isTetrisPlayingMusic() {
+    const tetrisWin = document.getElementById('win-tetris');
+    return tetrisWin && !tetrisWin.classList.contains('hidden') && tetrisBgmActive;
+  }
+
+  function handleUserInteraction() {
+    // If audio is not locked by an explicit terminal command and not playing Tetris music, return to Zelda from start
+    if (!manualCommandTrack && currentTrack !== 'zelda' && !isTetrisPlayingMusic()) {
+      unlockAudioAndPlay('zelda', true);
+    }
+  }
+
+  function closeTetris() {
+    if (window.TetrisGame) {
+      window.TetrisGame.pause();
+    }
+    if (tetrisBgmActive || currentTrack === 'tetris') {
+      tetrisBgmActive = false;
+      const bgmBtn = document.getElementById('tetris-bgm-toggle');
+      if (bgmBtn) bgmBtn.textContent = 'Music: Off';
+      manualCommandTrack = false;
+      unlockAudioAndPlay('zelda', true);
+    }
+  }
+
+  // Fallback: initial user gesture unlocks audio
   function gestureUnlock() {
     if (!audioUnlocked) {
-      unlockAudioAndPlay(currentTrack);
+      unlockAudioAndPlay(currentTrack, true);
     }
   }
   window.addEventListener('pointerdown', gestureUnlock, { once: true });
@@ -165,9 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
           if (win.classList.contains('active')) {
             win.classList.add('hidden');
             win.classList.remove('active');
+            if (win.id === 'win-tetris') {
+              closeTetris();
+            } else {
+              handleUserInteraction();
+            }
           } else {
             win.classList.remove('hidden');
             bringToFront(win);
+            handleUserInteraction();
           }
           updateTaskbar();
         };
@@ -181,12 +219,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (win) {
       win.classList.remove('hidden');
       bringToFront(win);
+      handleUserInteraction();
     }
+  }
+
+  // Desktop click listener reverts to Zelda
+  const desktopEl = document.getElementById('desktop');
+  if (desktopEl) {
+    desktopEl.addEventListener('click', handleUserInteraction);
   }
 
   // Dragging and window buttons
   windows.forEach(win => {
-    win.addEventListener('mousedown', () => bringToFront(win));
+    win.addEventListener('mousedown', () => {
+      bringToFront(win);
+      handleUserInteraction();
+    });
 
     const closeBtn = win.querySelector('.btn-close');
     if (closeBtn) {
@@ -197,11 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
         updateTaskbar();
 
         if (win.id === 'win-entrance') {
-          unlockAudioAndPlay('zelda');
-        }
-
-        if (win.id === 'win-tetris' && window.TetrisGame) {
-          window.TetrisGame.pause();
+          unlockAudioAndPlay('zelda', true);
+        } else if (win.id === 'win-tetris') {
+          closeTetris();
+        } else {
+          handleUserInteraction();
         }
       };
     }
@@ -213,6 +261,12 @@ document.addEventListener('DOMContentLoaded', () => {
         win.classList.add('hidden');
         win.classList.remove('active');
         updateTaskbar();
+
+        if (win.id === 'win-tetris') {
+          closeTetris();
+        } else {
+          handleUserInteraction();
+        }
       };
     }
 
@@ -225,6 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.tagName.toLowerCase() === 'button') return;
         isDragging = true;
         bringToFront(win);
+        handleUserInteraction();
         startX = e.clientX;
         startY = e.clientY;
 
@@ -277,7 +332,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnEnter = document.getElementById('btn-enter-system');
 
   function enterStation() {
-    unlockAudioAndPlay('zelda');
+    unlockAudioAndPlay('zelda', true);
     if (winEntrance) {
       winEntrance.classList.add('hidden');
       winEntrance.classList.remove('active');
@@ -294,6 +349,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const kirbyWalker = document.getElementById('kirby-walker');
   let kirbyAnimFrame = null;
   let isTourRunning = false;
+  let tourTimeouts = [];
+
+  function closeTourWindows() {
+    ['win-about', 'win-projects', 'win-terminal', 'win-guestbook'].forEach(id => {
+      const w = document.getElementById(id);
+      if (w) {
+        w.classList.add('hidden');
+        w.classList.remove('active');
+      }
+    });
+    updateTaskbar();
+  }
 
   function runKirbyAnimation() {
     if (!kirbyWalker) return;
@@ -325,7 +392,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const guestbook = document.getElementById('win-guestbook');
 
     if (w >= 980) {
-      // 4 quadrant spacing - no overlapping
       if (about) {
         about.style.left = '40px';
         about.style.top = '30px';
@@ -347,7 +413,6 @@ document.addEventListener('DOMContentLoaded', () => {
         guestbook.style.width = '400px';
       }
     } else {
-      // Mobile / medium screen cascaded offsets
       const wins = [about, projects, terminal, guestbook];
       wins.forEach((win, idx) => {
         if (win) {
@@ -359,9 +424,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startWebsiteTour() {
-    if (isTourRunning) return;
+    // Clear any previous running tour and close open windows
+    tourTimeouts.forEach(t => clearTimeout(t));
+    tourTimeouts = [];
+    closeTourWindows();
+
     isTourRunning = true;
-    unlockAudioAndPlay('kirby'); // Kirby BGM during tour
+    manualCommandTrack = false;
+    unlockAudioAndPlay('kirby', true); // Kirby theme reset to beginning
 
     if (startBtn) startBtn.classList.add('touring');
     runKirbyAnimation();
@@ -369,22 +439,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Sequentially open windows without Tetris
     const tourSequence = [
-      { delay: 200, winId: 'win-about' },
-      { delay: 1500, winId: 'win-projects' },
-      { delay: 2800, winId: 'win-terminal' },
-      { delay: 4200, winId: 'win-guestbook' }
+      { delay: 300, winId: 'win-about' },
+      { delay: 1600, winId: 'win-projects' },
+      { delay: 2900, winId: 'win-terminal' },
+      { delay: 4300, winId: 'win-guestbook' }
     ];
 
     tourSequence.forEach(item => {
-      setTimeout(() => {
+      const t = setTimeout(() => {
         openWindow(item.winId);
       }, item.delay);
+      tourTimeouts.push(t);
     });
 
-    setTimeout(() => {
+    const endT = setTimeout(() => {
       if (startBtn) startBtn.classList.remove('touring');
       isTourRunning = false;
-    }, 5500);
+    }, 5600);
+    tourTimeouts.push(endT);
   }
 
   if (startBtn) {
@@ -409,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cmd === 'help') {
           response = [
             'Available commands:',
-            '  sound <track>   - Change BGM (zelda, kirby, tetris, stop, play)',
+            '  sound <track>   - Change BGM (zelda, kirby, tetris, stop, play, auto)',
             '  volume <0-100>  - Adjust volume level',
             '  tour            - Run interactive site tour',
             '  tetris          - Launch Tetris minigame',
@@ -422,22 +494,29 @@ document.addEventListener('DOMContentLoaded', () => {
           ].join('\n');
         } else if (cmd === 'sound') {
           if (!arg || arg === 'list') {
-            response = 'Usage: sound [zelda | kirby | tetris | stop | play]';
+            response = 'Usage: sound [zelda | kirby | tetris | stop | play | auto]';
           } else if (arg === 'zelda') {
-            unlockAudioAndPlay('zelda');
-            response = 'Now playing: Zelda Theme.';
+            manualCommandTrack = true;
+            unlockAudioAndPlay('zelda', true);
+            response = 'Now playing: Zelda Theme (locked).';
           } else if (arg === 'kirby') {
-            unlockAudioAndPlay('kirby');
-            response = 'Now playing: Kirby Theme.';
+            manualCommandTrack = true;
+            unlockAudioAndPlay('kirby', true);
+            response = 'Now playing: Kirby Theme (locked).';
           } else if (arg === 'tetris') {
-            unlockAudioAndPlay('tetris');
-            response = 'Now playing: Tetris Theme.';
+            manualCommandTrack = true;
+            unlockAudioAndPlay('tetris', true);
+            response = 'Now playing: Tetris Theme (locked).';
           } else if (arg === 'stop' || arg === 'pause') {
             pauseAllAudio();
             response = 'Audio playback paused.';
           } else if (arg === 'play' || arg === 'resume') {
-            unlockAudioAndPlay(currentTrack);
+            unlockAudioAndPlay(currentTrack, false);
             response = `Resumed playing: ${currentTrack}.`;
+          } else if (arg === 'auto' || arg === 'reset') {
+            manualCommandTrack = false;
+            unlockAudioAndPlay('zelda', true);
+            response = 'Soundtrack mode set to auto (Zelda default).';
           } else {
             response = `Unknown soundtrack: ${arg}. Choose from zelda, kirby, tetris, stop.`;
           }
@@ -491,6 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (gbForm) {
     gbForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      handleUserInteraction();
       const name = document.getElementById('gb-name').value.trim();
       const msg = document.getElementById('gb-msg').value.trim();
       if (!name || !msg) return;
@@ -732,7 +812,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (overlay) overlay.classList.add('hidden');
 
     if (tetrisBgmActive) {
-      unlockAudioAndPlay('tetris');
+      unlockAudioAndPlay('tetris', true); // Tetris starts from beginning
     }
 
     nextPiece = randomPiece();
@@ -790,9 +870,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tetrisBgmActive = !tetrisBgmActive;
       bgmToggleTetris.textContent = tetrisBgmActive ? 'Music: On' : 'Music: Off';
       if (tetrisBgmActive) {
-        unlockAudioAndPlay('tetris');
+        unlockAudioAndPlay('tetris', true); // From start
       } else {
-        unlockAudioAndPlay('zelda');
+        unlockAudioAndPlay('zelda', true); // From start
       }
     });
   }
