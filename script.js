@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentVolume = 0.7;
   let audioUnlocked = false;
   let manualCommandTrack = false; // Set to true ONLY via terminal 'sound' command
+  let isTourRunning = false;
+  let tetrisBgmActive = false;
 
   function applyVolume() {
     const effectiveVol = isMuted ? 0 : currentVolume;
@@ -61,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         audio.play().catch(() => {});
       } else {
         audio.pause();
-        audio.currentTime = 0; // Reset other tracks to beginning
+        audio.currentTime = 0; // Reset other tracks to start
       }
     });
   }
@@ -77,14 +79,15 @@ document.addEventListener('DOMContentLoaded', () => {
     playTrack(name, fromStart);
   }
 
-  function isTetrisPlayingMusic() {
+  function isTetrisOpen() {
     const tetrisWin = document.getElementById('win-tetris');
-    return tetrisWin && !tetrisWin.classList.contains('hidden') && tetrisBgmActive;
+    return tetrisWin && !tetrisWin.classList.contains('hidden');
   }
 
   function handleUserInteraction() {
-    // If audio is not locked by an explicit terminal command and not playing Tetris music, return to Zelda from start
-    if (!manualCommandTrack && currentTrack !== 'zelda' && !isTetrisPlayingMusic()) {
+    if (isTourRunning) return; // Do not interrupt running tour
+    if (isTetrisOpen()) return; // Do not interrupt Tetris game
+    if (!manualCommandTrack && currentTrack !== 'zelda') {
       unlockAudioAndPlay('zelda', true);
     }
   }
@@ -93,16 +96,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.TetrisGame) {
       window.TetrisGame.pause();
     }
-    if (tetrisBgmActive || currentTrack === 'tetris') {
-      tetrisBgmActive = false;
-      const bgmBtn = document.getElementById('tetris-bgm-toggle');
-      if (bgmBtn) bgmBtn.textContent = 'Music: Off';
-      manualCommandTrack = false;
-      unlockAudioAndPlay('zelda', true);
-    }
+    tetrisBgmActive = false;
+    const bgmBtn = document.getElementById('tetris-bgm-toggle');
+    if (bgmBtn) bgmBtn.textContent = 'Music: Off';
+    manualCommandTrack = false;
+    unlockAudioAndPlay('zelda', true);
   }
 
-  // Fallback: initial user gesture unlocks audio
+  // Fallback: any user gesture unlocks audio
   function gestureUnlock() {
     if (!audioUnlocked) {
       unlockAudioAndPlay(currentTrack, true);
@@ -205,7 +206,14 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             win.classList.remove('hidden');
             bringToFront(win);
-            handleUserInteraction();
+            if (win.id === 'win-tetris') {
+              tetrisBgmActive = true;
+              const bgmBtn = document.getElementById('tetris-bgm-toggle');
+              if (bgmBtn) bgmBtn.textContent = 'Music: On';
+              unlockAudioAndPlay('tetris', true);
+            } else {
+              handleUserInteraction();
+            }
           }
           updateTaskbar();
         };
@@ -219,11 +227,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (win) {
       win.classList.remove('hidden');
       bringToFront(win);
-      handleUserInteraction();
+
+      if (winId === 'win-tetris') {
+        tetrisBgmActive = true;
+        const bgmBtn = document.getElementById('tetris-bgm-toggle');
+        if (bgmBtn) bgmBtn.textContent = 'Music: On';
+        unlockAudioAndPlay('tetris', true);
+      }
     }
   }
 
-  // Desktop click listener reverts to Zelda
+  // Desktop click listener
   const desktopEl = document.getElementById('desktop');
   if (desktopEl) {
     desktopEl.addEventListener('click', handleUserInteraction);
@@ -318,11 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
     icon.addEventListener('dblclick', () => {
       const targetId = icon.getAttribute('data-window');
       openWindow(targetId);
+      if (targetId !== 'win-tetris') handleUserInteraction();
     });
     icon.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
         const targetId = icon.getAttribute('data-window');
         openWindow(targetId);
+        if (targetId !== 'win-tetris') handleUserInteraction();
       }
     });
   });
@@ -344,11 +360,148 @@ document.addEventListener('DOMContentLoaded', () => {
     btnEnter.addEventListener('click', enterStation);
   }
 
-  // --- KIRBY & AUTO TOUR ---
+  // --- MULTI-LANE OPPOSING KIRBY PARADE ---
+  const kirbyStage = document.getElementById('kirby-stage');
+  const KIRBY_SVG = `
+    <svg class="kirby-svg" viewBox="0 0 100 100" width="56" height="56">
+      <circle cx="50" cy="54" r="32" fill="#ff9ec7" stroke="#e0548d" stroke-width="3" />
+      <ellipse cx="32" cy="56" rx="6" ry="3" fill="#ff5a92" />
+      <ellipse cx="68" cy="56" rx="6" ry="3" fill="#ff5a92" />
+      <ellipse cx="40" cy="46" rx="4" ry="9" fill="#1b2a75" />
+      <ellipse cx="60" cy="46" rx="4" ry="9" fill="#1b2a75" />
+      <ellipse cx="40" cy="42" rx="2" ry="5" fill="#ffffff" />
+      <ellipse cx="60" cy="42" rx="2" ry="5" fill="#ffffff" />
+      <ellipse cx="40" cy="51" rx="2" ry="2.5" fill="#388be6" />
+      <ellipse cx="60" cy="51" rx="2" ry="2.5" fill="#388be6" />
+      <path d="M 45 58 Q 50 63 55 58" stroke="#771337" stroke-width="2.5" fill="#c02652" stroke-linecap="round" />
+      <ellipse class="kirby-arm-left" cx="22" cy="52" rx="7" ry="11" fill="#ff9ec7" stroke="#e0548d" stroke-width="2.5" />
+      <ellipse class="kirby-arm-right" cx="78" cy="50" rx="7" ry="11" fill="#ff9ec7" stroke="#e0548d" stroke-width="2.5" />
+      <ellipse class="kirby-foot-left" cx="34" cy="85" rx="14" ry="8" fill="#d81b43" stroke="#990f2b" stroke-width="2.5" />
+      <ellipse class="kirby-foot-right" cx="66" cy="85" rx="14" ry="8" fill="#d81b43" stroke="#990f2b" stroke-width="2.5" />
+    </svg>
+  `;
+
+  let activeKirbys = [];
+  let paradeAnimFrame = null;
+  let paradeTimers = [];
+
+  function clearKirbyParade() {
+    paradeTimers.forEach(t => clearTimeout(t));
+    paradeTimers = [];
+    if (paradeAnimFrame) {
+      cancelAnimationFrame(paradeAnimFrame);
+      paradeAnimFrame = null;
+    }
+    if (kirbyStage) {
+      kirbyStage.innerHTML = '';
+    }
+    activeKirbys = [];
+  }
+
+  function spawnKirbyPair(laneBaseY, speed) {
+    if (!kirbyStage) return;
+
+    // Left-to-Right Kirby: slightly lower Y
+    const elLeft = document.createElement('div');
+    elLeft.className = 'kirby-sprite';
+    elLeft.innerHTML = KIRBY_SVG;
+    const yLeft = laneBaseY + 16;
+    elLeft.style.top = `${yLeft}px`;
+    elLeft.style.left = '-80px';
+    kirbyStage.appendChild(elLeft);
+
+    activeKirbys.push({
+      el: elLeft,
+      x: -80,
+      speed: speed,
+      direction: 1
+    });
+
+    // Right-to-Left (Opposite) Kirby: slightly higher Y (avoids overlap when passing in the middle)
+    const elRight = document.createElement('div');
+    elRight.className = 'kirby-sprite facing-left';
+    elRight.innerHTML = KIRBY_SVG;
+    const yRight = laneBaseY - 20;
+    elRight.style.top = `${yRight}px`;
+    elRight.style.left = `${window.innerWidth + 80}px`;
+    kirbyStage.appendChild(elRight);
+
+    activeKirbys.push({
+      el: elRight,
+      x: window.innerWidth + 80,
+      speed: speed,
+      direction: -1
+    });
+  }
+
+  function runParadeLoop() {
+    function animate() {
+      const screenW = window.innerWidth;
+
+      for (let i = activeKirbys.length - 1; i >= 0; i--) {
+        const k = activeKirbys[i];
+        k.x += k.speed * k.direction;
+        k.el.style.left = `${k.x}px`;
+
+        // Check if crossed screen
+        if (k.direction === 1 && k.x > screenW + 90) {
+          k.el.remove();
+          activeKirbys.splice(i, 1);
+        } else if (k.direction === -1 && k.x < -90) {
+          k.el.remove();
+          activeKirbys.splice(i, 1);
+        }
+      }
+
+      if (activeKirbys.length > 0 || paradeTimers.length > 0) {
+        paradeAnimFrame = requestAnimationFrame(animate);
+      }
+    }
+    paradeAnimFrame = requestAnimationFrame(animate);
+  }
+
+  function startMultiLaneKirbyParade() {
+    clearKirbyParade();
+
+    const h = window.innerHeight - 80;
+    // 5 vertical lanes covering the full screen
+    const lanes = [
+      Math.max(40, h * 0.12),
+      Math.max(100, h * 0.30),
+      Math.max(160, h * 0.50),
+      Math.max(220, h * 0.70),
+      Math.max(280, h * 0.88)
+    ];
+
+    // Wave 1 immediately
+    lanes.forEach((laneY, idx) => {
+      const speed = 2.4 + (idx % 3) * 0.3;
+      spawnKirbyPair(laneY, speed);
+    });
+
+    // Wave 2 staggered after 1.5s
+    const t2 = setTimeout(() => {
+      lanes.forEach((laneY, idx) => {
+        const speed = 2.2 + ((idx + 1) % 3) * 0.3;
+        spawnKirbyPair(laneY, speed);
+      });
+    }, 1500);
+    paradeTimers.push(t2);
+
+    // Wave 3 staggered after 3.0s
+    const t3 = setTimeout(() => {
+      lanes.forEach((laneY, idx) => {
+        const speed = 2.5 + (idx % 2) * 0.4;
+        spawnKirbyPair(laneY, speed);
+      });
+    }, 3000);
+    paradeTimers.push(t3);
+
+    runParadeLoop();
+  }
+
+  // --- AUTO TOUR ---
   const startBtn = document.getElementById('start-btn');
-  const kirbyWalker = document.getElementById('kirby-walker');
-  let kirbyAnimFrame = null;
-  let isTourRunning = false;
   let tourTimeouts = [];
 
   function closeTourWindows() {
@@ -360,26 +513,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
     updateTaskbar();
-  }
-
-  function runKirbyAnimation() {
-    if (!kirbyWalker) return;
-    kirbyWalker.classList.remove('hidden');
-    let x = -80;
-    const speed = 3;
-
-    cancelAnimationFrame(kirbyAnimFrame);
-    function step() {
-      x += speed;
-      kirbyWalker.style.left = `${x}px`;
-
-      if (x < window.innerWidth + 80) {
-        kirbyAnimFrame = requestAnimationFrame(step);
-      } else {
-        kirbyWalker.classList.add('hidden');
-      }
-    }
-    kirbyAnimFrame = requestAnimationFrame(step);
   }
 
   function positionTourWindows() {
@@ -431,18 +564,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     isTourRunning = true;
     manualCommandTrack = false;
-    unlockAudioAndPlay('kirby', true); // Kirby theme reset to beginning
+    unlockAudioAndPlay('kirby', true); // Kirby theme ALWAYS resets to start
 
     if (startBtn) startBtn.classList.add('touring');
-    runKirbyAnimation();
+    startMultiLaneKirbyParade();
     positionTourWindows();
 
     // Sequentially open windows without Tetris
     const tourSequence = [
-      { delay: 300, winId: 'win-about' },
-      { delay: 1600, winId: 'win-projects' },
-      { delay: 2900, winId: 'win-terminal' },
-      { delay: 4300, winId: 'win-guestbook' }
+      { delay: 400, winId: 'win-about' },
+      { delay: 1800, winId: 'win-projects' },
+      { delay: 3200, winId: 'win-terminal' },
+      { delay: 4600, winId: 'win-guestbook' }
     ];
 
     tourSequence.forEach(item => {
@@ -455,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const endT = setTimeout(() => {
       if (startBtn) startBtn.classList.remove('touring');
       isTourRunning = false;
-    }, 5600);
+    }, 6000);
     tourTimeouts.push(endT);
   }
 
@@ -627,7 +760,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let isPaused = false;
   let gameInterval = null;
   let baseSpeed = 170; // Hard mode speed
-  let tetrisBgmActive = false;
 
   function randomPiece() {
     const p = PIECES[Math.floor(Math.random() * PIECES.length)];
@@ -811,9 +943,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (linesEl) linesEl.textContent = '0';
     if (overlay) overlay.classList.add('hidden');
 
-    if (tetrisBgmActive) {
-      unlockAudioAndPlay('tetris', true); // Tetris starts from beginning
-    }
+    tetrisBgmActive = true;
+    if (bgmToggleTetris) bgmToggleTetris.textContent = 'Music: On';
+    unlockAudioAndPlay('tetris', true); // Tetris always starts from beginning
 
     nextPiece = randomPiece();
     spawnPiece();
@@ -870,9 +1002,9 @@ document.addEventListener('DOMContentLoaded', () => {
       tetrisBgmActive = !tetrisBgmActive;
       bgmToggleTetris.textContent = tetrisBgmActive ? 'Music: On' : 'Music: Off';
       if (tetrisBgmActive) {
-        unlockAudioAndPlay('tetris', true); // From start
+        unlockAudioAndPlay('tetris', true);
       } else {
-        unlockAudioAndPlay('zelda', true); // From start
+        unlockAudioAndPlay('zelda', true);
       }
     });
   }
